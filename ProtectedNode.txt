@@ -1,0 +1,55 @@
+Second Layer: 
+RedundantNode consists of three programs running on the same machine, 
+Checking each other for working status, and resurrecting them if needed.
+Data:
+- A.PortNumber
+- B.PortNumber
+- C.PortNumber
+- A.ProgramName
+- B.ProgramName
+- C.ProgramName
+Methods:
+- A.CheckPartner()
+- A.ResurrectPartner()
+- B.CheckPartner()
+- B.ResurrectPartner()
+- C.CheckPartner()
+- C.ResurrectPartner()
+
+
+Inner core: BareNode class
+Data:
+- identification in the form of a GUID
+- identification as readable name
+- birthdate in format YYYYMMDDHHMMSSFFF
+- last active date in format YYYYMMDDHHMMSSFFF
+- private PGP key
+- public PGP key
+Methods:
+- GetGUID()
+- GetName()
+- GetCreationDate()
+- GetLastActiveDate()
+- VerifyMessage()
+- EncodeMessage()
+
+
+Third Layer:
+Protected Node:
+Data:
+- Internal BareNode
+- External Protected Nodes
+- IP Address
+- Port Number
+- Receive Message
+- Send Message
+Methods:
+- HandleRequest()
+- SendRequest()
+- AddPeer()
+- CheckPeer()
+- 
+- 
+
+
+How would you organize the files in a go program that has three structs named TrioCore, BareNode and SecureNode, and a separate main.go containing the main function and using the other three structs?
