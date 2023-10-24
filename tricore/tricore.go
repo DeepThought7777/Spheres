@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"spheres/toolkit"
 	"strconv"
 	"time"
@@ -20,7 +21,7 @@ type TriCore struct {
 
 // NewTriCore builds a new TriCore object, based on the passed in JSON filename
 func NewTriCore(filePath string, index int) (*TriCore, error) {
-	data, err := os.ReadFile(filePath)
+	data, err := readFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read JSON file: %v", err)
 	}
@@ -60,7 +61,7 @@ func (t *TriCore) WriteLifeSign(index int) error {
 	filename := t.getLastSeenFilename(index)
 	currentTime := time.Now()
 
-	err := os.WriteFile(filename, []byte(strconv.Itoa(int(currentTime.Unix()))), 644)
+	_, err := writeFile(filename, []byte(strconv.Itoa(int(currentTime.Unix()))))
 	if err != nil {
 		return fmt.Errorf("error writing timestamp file")
 	}
@@ -79,7 +80,7 @@ func (t *TriCore) KeepOthersAlive() error {
 
 // CheckAndOptionallyStart reads the last life sign,restarting the core if not found or out of date.
 func (t *TriCore) CheckAndOptionallyStart(filename string, index int) error {
-	content, err := os.ReadFile(t.getLastSeenFilename(index))
+	content, err := readFile(t.getLastSeenFilename(index))
 	if err != nil {
 		return t.startPeer(filename, index)
 	}
@@ -90,7 +91,7 @@ func (t *TriCore) CheckAndOptionallyStart(filename string, index int) error {
 	}
 
 	nowTime := int(time.Now().Unix())
-	fmt.Println(toolkit.SecondsBetweenUnixTimes(lastSeenTime, nowTime))
+	fmt.Printf("%s %d\n", t.Names[index], toolkit.SecondsBetweenUnixTimes(lastSeenTime, nowTime))
 	if toolkit.SecondsBetweenUnixTimes(lastSeenTime, nowTime) > CheckTime+1 {
 		err = t.WriteLifeSign(index)
 		if err != nil {
@@ -103,14 +104,14 @@ func (t *TriCore) CheckAndOptionallyStart(filename string, index int) error {
 }
 
 func (t *TriCore) startPeer(filename string, index int) error {
-	cmd := exec.Command(".\\startsphere.cmd", t.Names[index], filename, fmt.Sprintf("%d", index))
+	cmd, err := t.runPlatformSpecificScript(filename, index)
 
 	// Set the appropriate standard input, output, and error streams
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	//cmd.Stdin = os.Stdin
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
+	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("error starting spheres program: %v", err)
 	}
@@ -120,4 +121,51 @@ func (t *TriCore) startPeer(filename string, index int) error {
 
 func (t *TriCore) getLastSeenFilename(index int) string {
 	return "LastSeen" + t.Names[index] + ".txt"
+}
+
+func (t *TriCore) runPlatformSpecificScript(filename string, index int) (*exec.Cmd, error) {
+	switch runtime.GOOS {
+	case "windows":
+		// Windows platform
+		return exec.Command(".\\startsphere.cmd", t.Names[index], filename, fmt.Sprintf("%d", index)), nil
+	case "linux":
+		// Linux platform
+		return exec.Command("lxterminal", "-e", ".\\sphere", filename, fmt.Sprintf("%d", index)), nil
+	case "darwin":
+		// macOS (Apple) platform
+		return exec.Command(".\\startsphere.sh", t.Names[index], filename, fmt.Sprintf("%d", index)), nil
+	default:
+		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+	}
+}
+
+func writeFile(filename string, data []byte) (int, error) {
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		fmt.Errorf("File could not be opened: %v", err)
+	}
+
+	defer file.Close()
+
+	count, err := file.Write(data)
+	if err != nil {
+		fmt.Errorf("File could not be written: %v", err)
+	}
+	return count, nil
+}
+
+func readFile(filename string) ([]byte, error) {
+	file, err := os.Open(filename) // For read access.
+	if err != nil {
+		fmt.Errorf("File could not be opened: %v", err)
+	}
+
+	defer file.Close()
+
+	data := make([]byte, 2048)
+	count, err := file.Read(data)
+	if err != nil {
+		fmt.Errorf("File could not be read: %v", err)
+	}
+	return data[:count], nil
 }
