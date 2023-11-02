@@ -1,0 +1,13 @@
+{
+  "tricore": {
+    "setname": "PodTwo.json",
+    "names": [
+      "Quantity",
+      "Quality",
+      "Question"
+    ],
+    "index": 0
+  },
+  "nodeguid": "296ec293-aa3a-4697-991c-ab9218227eb9",
+  "serverport": 4444
+}

@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"spheres/toolkit"
@@ -126,7 +127,8 @@ func (t *TriCore) startPeer(index int) error {
 }
 
 func (t *TriCore) getLastSeenFilename(index int) string {
-	return "LastSeen" + t.Names[index] + ".txt"
+	setName := strings.Replace(t.SetName, ".json", "", 1)
+	return "LastSeen" + setName + t.Names[index] + ".txt"
 }
 
 func (t *TriCore) runPlatformSpecificScript(filename string, index int) (*exec.Cmd, error) {

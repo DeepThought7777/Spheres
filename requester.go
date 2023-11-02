@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -16,8 +16,8 @@ func clearConsole() {
 	_ = cmd.Run()
 }
 
-func fetchHeartbeat() {
-	resp, err := http.Get("http://localhost:7777/heartbeat")
+func fetchHeartbeat(port string) {
+	resp, err := http.Get("http://localhost:" + port + "/heartbeat")
 	if err != nil {
 		clearConsole()
 		fmt.Printf("Error fetching heartbeat: %v\n", err)
@@ -25,7 +25,7 @@ func fetchHeartbeat() {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		clearConsole()
 		fmt.Printf("Error reading response body: %v\n", err)
@@ -37,11 +37,17 @@ func fetchHeartbeat() {
 }
 
 func main() {
-	// Set up a ticker to tick every second
+	port := "7777"
+	if len(os.Args) > 1 {
+		port = os.Args[1]
+	}
+	fmt.Printf("Checking port: %s\n", port)
+	time.Sleep(3 * time.Second)
+	
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		fetchHeartbeat()
+		fetchHeartbeat(port)
 	}
 }
