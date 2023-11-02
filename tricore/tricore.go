@@ -6,14 +6,11 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
 	"spheres/toolkit"
 )
-
-const CheckTime = 3
 
 type TriCore struct {
 	SetName string   `json:"setname"`
@@ -53,17 +50,16 @@ func (t *TriCore) Run(index int) {
 			toolkit.DisplayAndOptionallyExit("TriCore could not be instantiated: "+err.Error(), true)
 		}
 
-		time.Sleep(CheckTime * time.Second)
+		time.Sleep(toolkit.CheckTime * time.Millisecond)
 		err = t.KeepOthersAlive()
 	}
 }
 
-// WriteLifeSign writes the life sign file for the current core, in Unix style
+// WriteLifeSign writes the life sign file for the current core, in UnixMilli style
 func (t *TriCore) WriteLifeSign(index int) error {
 	filename := t.getLastSeenFilename(index)
-	currentTime := time.Now()
 
-	_, err := toolkit.WriteFile(filename, []byte(strconv.Itoa(int(currentTime.Unix()))))
+	_, err := toolkit.WriteFile(filename, []byte(toolkit.GetUnixMilli()))
 	if err != nil {
 		return fmt.Errorf("error writing timestamp file")
 	}
@@ -80,30 +76,7 @@ func (t *TriCore) KeepOthersAlive() error {
 	return nil
 }
 
-func (t *TriCore) CheckNodeHealth(index int) bool {
-	content, err := toolkit.ReadFile(t.getLastSeenFilename(index))
-	if err != nil {
-		return false
-	}
-
-	lastSeenTime, err := strconv.Atoi(string(content))
-	if err != nil {
-		return false
-	}
-
-	nowTime := int(time.Now().Unix())
-	fmt.Printf("%s %d\n", t.Names[index], toolkit.SecondsBetweenUnixTimes(lastSeenTime, nowTime))
-	if toolkit.SecondsBetweenUnixTimes(lastSeenTime, nowTime) > CheckTime+1 {
-		err = t.WriteLifeSign(index)
-		if err != nil {
-			fmt.Printf("could not reset timestamp for %s\n", t.Names[index])
-		}
-
-		return false
-	}
-	return true
-}
-
+// CheckAndOptionallyStart checks the health of the given core, and restarts it if needed
 func (t *TriCore) CheckAndOptionallyStart(index int) error {
 	if !t.CheckNodeHealth(index) {
 		return t.startPeer(index)
@@ -111,8 +84,9 @@ func (t *TriCore) CheckAndOptionallyStart(index int) error {
 	return nil
 }
 
+// startPeer starts the core of the TriCore corresponding to the index
 func (t *TriCore) startPeer(index int) error {
-	cmd, err := t.runPlatformSpecificScript(t.SetName, index)
+	cmd, err := t.runPlatformSpecificScript(index)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -126,22 +100,49 @@ func (t *TriCore) startPeer(index int) error {
 	return nil
 }
 
+// CheckNodeHealth checks if the given core is still alive
+func (t *TriCore) CheckNodeHealth(index int) bool {
+	content, err := toolkit.ReadFile(t.getLastSeenFilename(index))
+	if err != nil {
+		return false
+	}
+
+	lastSeenTime := toolkit.StringToUnixMilli(string(content))
+	if lastSeenTime == -1 {
+		return false
+	}
+
+	nowTime := time.Now().UnixMilli()
+	fmt.Printf("%s %d\n", t.Names[index], toolkit.DifferenceBetweenUnixMilliTimes(lastSeenTime, nowTime))
+	if toolkit.DifferenceBetweenUnixMilliTimes(lastSeenTime, nowTime) > toolkit.CheckTime*2 {
+		err = t.WriteLifeSign(index)
+		if err != nil {
+			fmt.Printf("could not reset timestamp for %s\n", t.Names[index])
+		}
+
+		return false
+	}
+	return true
+}
+
+// getLastSeenFilename builds the filename for the lastseen file the core at the given index uses
 func (t *TriCore) getLastSeenFilename(index int) string {
 	setName := strings.Replace(t.SetName, ".json", "", 1)
 	return "LastSeen" + setName + t.Names[index] + ".txt"
 }
 
-func (t *TriCore) runPlatformSpecificScript(filename string, index int) (*exec.Cmd, error) {
+// runPlatformSpecificScript runs an OS command script to start a new spheres instance
+func (t *TriCore) runPlatformSpecificScript(index int) (*exec.Cmd, error) {
 	switch runtime.GOOS {
 	case "windows":
 		// Windows platform
-		return exec.Command(".\\startsphere.cmd", t.Names[index], filename, fmt.Sprintf("%d", index)), nil
+		return exec.Command(".\\startsphere.cmd", t.Names[index], t.SetName, fmt.Sprintf("%d", index)), nil
 	case "linux":
 		// Linux platform
-		return exec.Command("lxterminal", "-e", ".\\sphere", filename, fmt.Sprintf("%d", index)), nil
+		return exec.Command("lxterminal", "-e", ".\\sphere", t.SetName, fmt.Sprintf("%d", index)), nil
 	case "darwin":
 		// macOS (Apple) platform
-		return exec.Command(".\\startsphere.sh", t.Names[index], filename, fmt.Sprintf("%d", index)), nil
+		return exec.Command(".\\startsphere.sh", t.Names[index], t.SetName, fmt.Sprintf("%d", index)), nil
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}

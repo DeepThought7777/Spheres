@@ -3,26 +3,29 @@ package barenode
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"net/http"
+	"time"
+
 	"spheres/toolkit"
 	"spheres/tricore"
-	"time"
+
+	"github.com/google/uuid"
 )
 
-const CheckTime = 3
-
+// BareNode is the struct that encapsulates a TriCore and adds specific data
 type BareNode struct {
 	tricore.TriCore `json:"tricore"`
 	NodeGuid        string `json:"nodeguid"`
 	ServerPort      int    `json:"serverport"`
 }
 
+// HeartbeatResponse is the JSON format that the heartbeat handler returns as a body
 type HeartbeatResponse struct {
 	GUID   string `json:"guid"`
 	Server string `json:"server"`
 }
 
+// NewBareNode creates a new BareNode structure and returns a reference to it
 func NewBareNode(filePath string, index int) (*BareNode, error) {
 	data, err := toolkit.ReadFile(filePath)
 	if err != nil {
@@ -53,7 +56,7 @@ func (b *BareNode) Run(index int) {
 			serverRunning = false
 		}
 
-		time.Sleep(CheckTime * time.Second)
+		time.Sleep(toolkit.CheckTime * time.Millisecond)
 		err := b.WriteLifeSign(index)
 		if err != nil {
 			toolkit.DisplayAndOptionallyExit("TriCore could not be instantiated: "+err.Error(), true)
@@ -66,6 +69,7 @@ func (b *BareNode) Run(index int) {
 	}
 }
 
+// CompleteAndWriteBareNode fills the remaining fields of the struct and writes out the JSON file
 func (b *BareNode) CompleteAndWriteBareNode(filePath string, index int) error {
 	b.TriCore.Index = index
 
@@ -95,31 +99,42 @@ func (b *BareNode) WriteBareNodeToFile() error {
 	return nil
 }
 
+// Server binds the port and tries to start the server, failing silently if needed.
 func (b *BareNode) Server() {
-	mux := http.NewServeMux() // Create a new ServeMux
+	mux := http.NewServeMux()
 
-	mux.HandleFunc("/heartbeat", func(w http.ResponseWriter, r *http.Request) {
-		response := HeartbeatResponse{
-			GUID:   b.NodeGuid,
-			Server: b.Names[b.Index],
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		jsonResponse, err := json.Marshal(response)
-		if err != nil {
-			return
-		}
-
-		_, _ = w.Write(jsonResponse)
-	})
+	// Use a method expression to convert the heartbeatHandler method into a function
+	mux.HandleFunc("/heartbeat", b.heartbeatHandler)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", b.ServerPort),
-		Handler: mux, // Use the new ServeMux as the server handler
+		Handler: mux,
 	}
 
 	if err := server.ListenAndServe(); err != nil {
+		// Handle the error according to your application's requirements.
+		// For example, you might log the error or exit the program.
+	}
+}
+
+// heartbeatHandler is passed to the HandleFunc to handle the heartbeat
+func (b *BareNode) heartbeatHandler(w http.ResponseWriter, r *http.Request) {
+	response := HeartbeatResponse{
+		GUID:   b.NodeGuid,
+		Server: b.Names[b.Index],
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	_, err = w.Write(jsonResponse)
+	if err != nil {
+		// Handle the error according to your application's requirements.
+		// For example, you might log the error or send a different response.
 	}
 }

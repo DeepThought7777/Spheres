@@ -6,11 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="9b2c5e9f-e272-4027-b2ec-cd5b61f273e9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LastSeenDuality.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/LastSeenTrinity.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/LastSeenUnity.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PodOne.json" beforeDir="false" afterPath="$PROJECT_DIR$/PodOne.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/barenode/barenode.go" beforeDir="false" afterPath="$PROJECT_DIR$/barenode/barenode.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requester.go" beforeDir="false" afterPath="$PROJECT_DIR$/requester.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spheres.go" beforeDir="false" afterPath="$PROJECT_DIR$/spheres.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/toolkit/toolkit.go" beforeDir="false" afterPath="$PROJECT_DIR$/toolkit/toolkit.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tricore/tricore.go" beforeDir="false" afterPath="$PROJECT_DIR$/tricore/tricore.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,7 +67,7 @@
       <recent name="C:\Users\Moorelife\Desktop\development\go\spheres\RedundantCore" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.go build requester.go">
+  <component name="RunManager" selected="Go Build.go build spheres.go">
     <configuration name="go build requester.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="spheres" />
       <working_directory value="$PROJECT_DIR$" />
@@ -80,17 +80,21 @@
     <configuration name="go build spheres.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="spheres" />
       <working_directory value="$PROJECT_DIR$" />
-      <parameters value="config.json 0" />
+      <parameters value="PodOne.json 0" />
       <kind value="FILE" />
       <package value="spheres" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$/spheres.go" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Go Build.go build requester.go" />
+      <item itemvalue="Go Build.go build spheres.go" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build requester.go" />
         <item itemvalue="Go Build.go build spheres.go" />
+        <item itemvalue="Go Build.go build requester.go" />
       </list>
     </recent_temporary>
   </component>
@@ -100,16 +104,5 @@
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/barenode/barenode.go</url>
-          <line>20</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

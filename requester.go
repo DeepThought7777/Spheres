@@ -42,8 +42,8 @@ func main() {
 		port = os.Args[1]
 	}
 	fmt.Printf("Checking port: %s\n", port)
-	time.Sleep(3 * time.Second)
-	
+	time.Sleep(3 * time.Millisecond)
+
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 

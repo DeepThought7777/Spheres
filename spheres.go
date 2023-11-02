@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
+
 	"spheres/barenode"
 	"spheres/toolkit"
-	"strconv"
 )
 
 // main() reads the command line arguments and starts the specified member of the TriCore set,
@@ -21,6 +22,7 @@ func main() {
 		toolkit.DisplayAndOptionallyExit("TriCore could not be instantiated: "+err.Error(), true)
 	}
 
+	_ = bareNode.WriteLifeSign(coreIndex)
 	bareNode.Run(coreIndex)
 }
 
@@ -43,6 +45,7 @@ func getCommandLineArguments() (string, int, error) {
 	return jsonFilename, numStr, nil
 }
 
+// ConvertAndValidateRange converts a string to an int and checks if it is in range between min and max
 func ConvertAndValidateRange(number string, min, max int) (int, error) {
 	num, err := strconv.Atoi(number)
 	if err != nil {
